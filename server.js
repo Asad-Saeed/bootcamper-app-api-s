@@ -3,6 +3,7 @@ const dotenv = require("dotenv");
 const logger = require("./middleware/logger");
 const morgan = require("morgan");
 const connectDB = require("./config/db");
+const colors = require("colors");
 
 // Route files
 const bootcamps = require("./routes/bootcamps");
@@ -29,6 +30,7 @@ const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
   console.log(
-    "Server is running in {" + process.env.NODE_ENV + "} mode on port " + PORT
+    `Server is running in { ${process.env.NODE_ENV} } mode on port ${PORT}`
+      .magenta.bold.bgCyan
   );
 });
