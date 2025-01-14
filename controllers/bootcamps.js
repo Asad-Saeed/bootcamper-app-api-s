@@ -3,22 +3,45 @@ import Bootcamp from "../models/Bootcamp.js";
 // @desc Get all bootcamps
 // @route GET /api/v1/bootcamps
 // @access Public
-export const getBootcamps = (req, res, next) => {
-  res.status(200).json({
-    success: true,
-    message: "Show all bootcamps",
-    hello: req.hello,
-  });
+export const getBootcamps = async (req, res, next) => {
+  try {
+    const bootcamps = await Bootcamp.find();
+    res.status(200).json({
+      success: true,
+      message: "Bootcamps fetched successfully",
+      data: bootcamps,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
 };
 
 // @desc Get single bootcamp
 // @route GET /api/v1/bootcamps/:id
 // @access Public
-export const getBootcamp = (req, res, next) => {
-  res.status(200).json({
-    success: true,
-    message: `Show bootcamp ${req.params.id}`,
-  });
+export const getBootcamp = async (req, res, next) => {
+  try {
+    const bootcamp = await Bootcamp.findById(req.params.id);
+    if (!bootcamp) {
+      return res.status(400).json({
+        success: false,
+        message: "Bootcamp not found",
+      });
+    }
+    res.status(200).json({
+      success: true,
+      message: `Bootcamp fetched successfully`,
+      data: bootcamp,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
 };
 
 // @desc Create new bootcamp
