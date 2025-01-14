@@ -1,12 +1,11 @@
-const express = require("express");
-const {
+import express from "express";
+import {
   getBootcamps,
   getBootcamp,
   createBootcamp,
   updateBootcamp,
   deleteBootcamp,
-} = require("../controllers/bootcamps");
-
+} from "../controllers/bootcamps.js";
 const router = express.Router();
 // Best Practice
 
@@ -61,4 +60,4 @@ router
 //   });
 // });
 
-module.exports = router;
+export default router;

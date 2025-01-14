@@ -1,12 +1,11 @@
-const express = require("express");
-const dotenv = require("dotenv");
-const logger = require("./middleware/logger");
-const morgan = require("morgan");
-const connectDB = require("./config/db");
-const colors = require("colors");
-
+import express from "express";
+import dotenv from "dotenv";
+import colors from "colors";
+import morgan from "morgan";
+import connectDB from "./config/db.js";
+import logger from "./middleware/logger.js";
 // Route files
-const bootcamps = require("./routes/bootcamps");
+import bootcamps from "./routes/bootcamps.js";
 // Load env vars
 dotenv.config({ path: "./config/config.env" });
 
@@ -17,6 +16,9 @@ const app = express();
 
 // Logger Middleware
 // app.use(logger);
+
+// Body parser
+app.use(express.json());
 
 // Dev logging middleware
 if (process.env.NODE_ENV === "development") {
@@ -31,6 +33,6 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(
     `Server is running in { ${process.env.NODE_ENV} } mode on port ${PORT}`
-      .magenta.bold.bgCyan
+      .white.bold.bgGreen
   );
 });
