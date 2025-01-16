@@ -8,6 +8,7 @@ export const getBootcamps = async (req, res, next) => {
     const bootcamps = await Bootcamp.find();
     res.status(200).json({
       success: true,
+      totalCount: bootcamps?.length,
       message: "Bootcamps fetched successfully",
       data: bootcamps,
     });
@@ -69,7 +70,7 @@ export const createBootcamp = async (req, res, next) => {
 export const updateBootcamp = async (req, res, next) => {
   try {
     const bootcamp = await Bootcamp.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
+      new: true, // whar does these option done
       runValidators: true,
     });
     if (!bootcamp) {
@@ -94,9 +95,24 @@ export const updateBootcamp = async (req, res, next) => {
 // @desc Delete bootcamp
 // @route DELETE /api/v1/bootcamps/:id
 // @access Private
-export const deleteBootcamp = (req, res, next) => {
-  res.status(200).json({
-    success: true,
-    message: `Delete bootcamp ${req.params.id}`,
-  });
+export const deleteBootcamp = async (req, res, next) => {
+  try {
+    const bootcamp = await Bootcamp.findByIdAndDelete(req.params.id);
+    if (!bootcamp) {
+      return res.status(400).json({
+        success: false,
+        message: "Bootcamp not found",
+      });
+    }
+    return res.status(200).json({
+      success: true,
+      message: `Bootcamp deleted successfully`,
+      data: bootcamp,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
 };
