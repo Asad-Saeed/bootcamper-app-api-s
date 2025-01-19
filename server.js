@@ -3,7 +3,9 @@ import dotenv from "dotenv";
 import colors from "colors";
 import morgan from "morgan";
 import connectDB from "./config/db.js";
+// Middleware
 import logger from "./middleware/logger.js";
+import errorHandler from "./middleware/error.js";
 // Route files
 import bootcamps from "./routes/bootcamps.js";
 // Load env vars
@@ -14,19 +16,22 @@ connectDB();
 
 const app = express();
 
-// Logger Middleware
-// app.use(logger);
-
 // Body parser
 app.use(express.json());
+
+// Mount routers
+app.use("/api/v1/bootcamps", bootcamps);
 
 // Dev logging middleware
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
 
-// Mount routers
-app.use("/api/v1/bootcamps", bootcamps);
+// Logger Middleware
+// app.use(logger);
+
+// Error handler middleware
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
