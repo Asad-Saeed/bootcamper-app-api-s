@@ -5,6 +5,7 @@ import {
   createBootcamp,
   updateBootcamp,
   deleteBootcamp,
+  getBootcampsInRadius,
 } from "../controllers/bootcamps.js";
 const router = express.Router();
 // Best Practice
@@ -21,6 +22,11 @@ router
   .get(getBootcamp)
   .put(updateBootcamp)
   .delete(deleteBootcamp);
+
+// @desc Get bootcamps within a radius
+// @route GET /api/v1/bootcamps/radius/:zipcode/:distance
+// @access Private
+router.route("/radius/:zipcode/:distance").get(getBootcampsInRadius);
 
 // Normal API Routes
 
