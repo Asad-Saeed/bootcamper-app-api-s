@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import Geocoder from "../utils/geocoder.js";
 import slugify from "slugify";
+import Course from "./Course.js";
 
 const BootcampSchema = new mongoose.Schema(
   {
@@ -128,5 +129,28 @@ BootcampSchema.pre("save", function (next) {
 //   this.address = undefined;
 //   next();
 // });
+
+// Cascade delete middleware
+BootcampSchema.pre(
+  "deleteOne",
+  { document: true, query: false },
+  async function (next) {
+    try {
+      // Use imported Course model
+      await Course.deleteMany({ bootcamp: this._id });
+      next();
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// Reverse populate with virtuals
+BootcampSchema.virtual("courses", {
+  ref: "Course",
+  localField: "_id",
+  foreignField: "bootcamp",
+  justOne: false,
+});
 
 export default mongoose.model("Bootcamp", BootcampSchema);

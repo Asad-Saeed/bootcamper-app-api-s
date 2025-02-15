@@ -12,7 +12,10 @@ export const getBootcamps = asyncHandler(async (req, res, next) => {
   const { query, pagination } = await filterBuilder(Bootcamp, req.query);
 
   // Execute query
-  const bootcamps = await query;
+  const bootcamps = await query.populate({
+    path: "courses",
+    select: "title description",
+  });
 
   res.status(200).json({
     success: true,
@@ -76,12 +79,16 @@ export const updateBootcamp = asyncHandler(async (req, res, next) => {
 // @route DELETE /api/v1/bootcamps/:id
 // @access Private
 export const deleteBootcamp = asyncHandler(async (req, res, next) => {
-  const bootcamp = await Bootcamp.findByIdAndDelete(req.params.id);
+  const bootcamp = await Bootcamp.findById(req.params.id);
+
   if (!bootcamp) {
     return next(
       new ErrorResponse(`Bootcamp not found with id of ${req.params.id}`, 404)
     );
   }
+  // trigger the pre remove middleware
+  await bootcamp.deleteOne();
+
   res.status(200).json({
     success: true,
     message: `Bootcamp deleted successfully`,
