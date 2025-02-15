@@ -11,8 +11,17 @@ export const buildSearchQuery = (searchTerm, model) => {
   if (!searchTerm) return {};
 
   const searchableFields = [];
+  const excludedPaths = ["location.coordinates", "__v", "_id"]; // Add paths to exclude
+
+  // Helper to check if path should be excluded
+  const shouldExcludePath = (path) => {
+    return excludedPaths.some((excludedPath) => path.startsWith(excludedPath));
+  };
 
   Object.keys(model.schema.paths).forEach((path) => {
+    // Skip excluded paths
+    if (shouldExcludePath(path)) return;
+
     const fieldType = model.schema.paths[path].instance;
 
     switch (fieldType) {
@@ -45,13 +54,18 @@ export const buildSearchQuery = (searchTerm, model) => {
         break;
 
       case "Object":
-        Object.keys(model.schema.paths[path].options.type).forEach(
-          (subPath) => {
+        // Handle nested objects, but skip location.coordinates
+        const nestedPaths = Object.keys(
+          model.schema.paths[path].options.type || {}
+        );
+        nestedPaths.forEach((subPath) => {
+          const fullPath = `${path}.${subPath}`;
+          if (!shouldExcludePath(fullPath)) {
             searchableFields.push({
-              [`${path}.${subPath}`]: { $regex: searchTerm, $options: "i" },
+              [fullPath]: { $regex: searchTerm, $options: "i" },
             });
           }
-        );
+        });
         break;
     }
   });
