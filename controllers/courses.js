@@ -1,6 +1,7 @@
 import Course from "../models/Course.js";
 import asyncHandler from "../middleware/async.js";
 import ErrorResponse from "../utils/errorResponse.js";
+import Bootcamp from "../models/Bootcamp.js";
 
 // @desc Get courses
 // @route GET /api/v1/courses
@@ -29,7 +30,10 @@ export const getCourses = asyncHandler(async (req, res, next) => {
 // @access Public
 
 export const getCourse = asyncHandler(async (req, res, next) => {
-  const course = await Course.findById(req.params.id);
+  const course = await Course.findById(req.params.id).populate({
+    path: "bootcamp",
+    select: "name description",
+  });
 
   if (!course) {
     return next(new ErrorResponse(`No course with the id of ${req.params.id}`));
@@ -44,13 +48,16 @@ export const getCourse = asyncHandler(async (req, res, next) => {
 
 export const addCourse = asyncHandler(async (req, res, next) => {
   req.body.bootcamp = req.params.bootcampId;
-  req.body.user = req.user.id;
+  // req.body.user = req.user.id;
 
   const bootcamp = await Bootcamp.findById(req.params.bootcampId);
 
   if (!bootcamp) {
     return next(
-      new ErrorResponse(`No bootcamp with the id of ${req.params.bootcampId}`)
+      new ErrorResponse(
+        `No bootcamp with the id of ${req.params.bootcampId}`,
+        404
+      )
     );
   }
 
