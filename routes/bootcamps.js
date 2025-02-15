@@ -7,7 +7,14 @@ import {
   deleteBootcamp,
   getBootcampsInRadius,
 } from "../controllers/bootcamps.js";
-const router = express.Router();
+import courses from "./courses.js";
+// Include other resource routers
+const courseRouter = courses;
+const router = express.Router({ mergeParams: true });
+
+// Re-route into other resource routers
+router.use("/:bootcampId/courses", courseRouter);
+
 // Best Practice
 
 // router.route("/").get(getBootcamps)

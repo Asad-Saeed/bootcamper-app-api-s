@@ -8,6 +8,7 @@ import logger from "./middleware/logger.js";
 import errorHandler from "./middleware/error.js";
 // Route files
 import bootcamps from "./routes/bootcamps.js";
+import courses from "./routes/courses.js";
 // Load env vars
 dotenv.config({ path: "./config/config.env" });
 
@@ -21,6 +22,7 @@ app.use(express.json());
 
 // Mount routers
 app.use("/api/v1/bootcamps", bootcamps);
+app.use("/api/v1/courses", courses);
 
 // Dev logging middleware
 if (process.env.NODE_ENV === "development") {
