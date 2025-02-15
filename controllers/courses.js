@@ -22,7 +22,12 @@ export const getCourses = asyncHandler(async (req, res, next) => {
 
   const courses = await query;
 
-  res.status(200).json({ success: true, count: courses.length, data: courses });
+  res.status(200).json({
+    success: true,
+    message: "Courses fetched successfully",
+    count: courses.length,
+    data: courses,
+  });
 });
 
 // @desc Get single course
@@ -36,10 +41,16 @@ export const getCourse = asyncHandler(async (req, res, next) => {
   });
 
   if (!course) {
-    return next(new ErrorResponse(`No course with the id of ${req.params.id}`));
+    return next(
+      new ErrorResponse(`No course with the id of ${req.params.id}`, 404)
+    );
   }
 
-  res.status(200).json({ success: true, data: course });
+  res.status(200).json({
+    success: true,
+    message: "Course fetched successfully",
+    data: course,
+  });
 });
 
 // @desc Add course
@@ -63,7 +74,11 @@ export const addCourse = asyncHandler(async (req, res, next) => {
 
   const course = await Course.create(req.body);
 
-  res.status(201).json({ success: true, data: course });
+  res.status(201).json({
+    success: true,
+    message: "Course created successfully",
+    data: course,
+  });
 });
 
 // @desc Update course
@@ -74,7 +89,9 @@ export const updateCourse = asyncHandler(async (req, res, next) => {
   let course = await Course.findById(req.params.id);
 
   if (!course) {
-    return next(new ErrorResponse(`No course with the id of ${req.params.id}`));
+    return next(
+      new ErrorResponse(`No course with the id of ${req.params.id}`, 404)
+    );
   }
 
   course = await Course.findByIdAndUpdate(req.params.id, req.body, {
@@ -82,7 +99,11 @@ export const updateCourse = asyncHandler(async (req, res, next) => {
     runValidators: true,
   });
 
-  res.status(200).json({ success: true, data: course });
+  res.status(200).json({
+    success: true,
+    message: "Course updated successfully",
+    data: course,
+  });
 });
 
 // @desc Delete course
@@ -96,7 +117,11 @@ export const deleteCourse = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse(`No course with the id of ${req.params.id}`));
   }
 
-  await course.remove();
+  await course.deleteOne();
 
-  res.status(200).json({ success: true, data: {} });
+  res.status(200).json({
+    success: true,
+    message: "Course deleted successfully",
+    data: {},
+  });
 });
