@@ -1,54 +1,147 @@
 /**
- * Builds a MongoDB query object from request query parameters
- * @param {Object} reqQuery - The request query object
- * @param {Array} removeFields - Fields to exclude from filtering
- * @returns {Object} Query object and other query options
+ * Collection of query building utilities for MongoDB
  */
-export const buildQuery = (
-  reqQuery,
-  removeFields = ["select", "sort", "page", "limit"]
-) => {
-  // Copy query params
-  const queryParams = { ...reqQuery };
 
-  // Remove fields that shouldn't be included in filtering
-  removeFields.forEach((param) => delete queryParams[param]);
+/**
+ * Builds search query for all field types
+ * @param {string} searchTerm
+ * @param {Model} model
+ */
+export const buildSearchQuery = (searchTerm, model) => {
+  if (!searchTerm) return {};
 
-  // Create operators ($gt, $gte, etc)
-  let queryStr = JSON.stringify(queryParams);
-  queryStr = queryStr.replace(
-    /\b(gt|gte|lt|lte|in)\b/g,
-    (match) => `$${match}`
+  const searchableFields = [];
+
+  Object.keys(model.schema.paths).forEach((path) => {
+    const fieldType = model.schema.paths[path].instance;
+
+    switch (fieldType) {
+      case "String":
+        searchableFields.push({
+          [path]: { $regex: searchTerm, $options: "i" },
+        });
+        break;
+
+      case "Number":
+        if (!isNaN(searchTerm)) {
+          searchableFields.push({
+            [path]: parseFloat(searchTerm),
+          });
+        }
+        break;
+
+      case "Boolean":
+        if (["true", "false"].includes(searchTerm.toLowerCase())) {
+          searchableFields.push({
+            [path]: searchTerm.toLowerCase() === "true",
+          });
+        }
+        break;
+
+      case "Array":
+        searchableFields.push({
+          [path]: { $in: [new RegExp(searchTerm, "i")] },
+        });
+        break;
+
+      case "Object":
+        Object.keys(model.schema.paths[path].options.type).forEach(
+          (subPath) => {
+            searchableFields.push({
+              [`${path}.${subPath}`]: { $regex: searchTerm, $options: "i" },
+            });
+          }
+        );
+        break;
+    }
+  });
+
+  return searchableFields.length > 0 ? { $or: searchableFields } : {};
+};
+
+/**
+ * Processes MongoDB operators in query
+ * @param {Object} queryParams
+ */
+export const buildOperatorQuery = (queryParams) => {
+  const queryStr = JSON.stringify(queryParams);
+  return JSON.parse(
+    queryStr.replace(/\b(gt|gte|lt|lte|in)\b/g, (match) => `$${match}`)
   );
+};
 
-  // Parse the query string
-  let query = JSON.parse(queryStr);
+/**
+ * Applies field selection to query
+ * @param {Object} query
+ * @param {string} selectString
+ */
+export const buildSelectQuery = (query, selectString) => {
+  if (!selectString) return query;
+  const fields = selectString.split(",").join(" ");
+  return query.select(fields);
+};
 
-  // Handle select fields
-  let select = "";
-  if (reqQuery.select) {
-    select = reqQuery.select.split(",").join(" ");
-  }
+/**
+ * Applies sorting to query
+ * @param {Object} query
+ * @param {string} sortString
+ */
+export const buildSortQuery = (query, sortString) => {
+  const sortBy = sortString ? sortString.split(",").join(" ") : "-createdAt";
+  return query.sort(sortBy);
+};
 
-  // Handle sort
-  let sort = "-createdAt"; // default sort
-  if (reqQuery.sort) {
-    sort = reqQuery.sort.split(",").join(" ");
-  }
-
-  // Handle pagination
-  const page = parseInt(reqQuery.page, 10) || 1;
-  const limit = parseInt(reqQuery.limit, 10) || 100;
-  const startIndex = (page - 1) * limit;
+/**
+ * Calculates pagination details
+ * @param {number} total
+ * @param {Object} options
+ */
+export const getPaginationData = (total, { page = 1, limit = 10 }) => {
+  const currentPage = Math.max(1, parseInt(page, 10));
+  const limitPerPage = Math.min(100, parseInt(limit, 10));
+  const totalPages = Math.ceil(total / limitPerPage);
 
   return {
-    query,
-    select,
-    sort,
-    pagination: {
-      page,
-      limit,
-      startIndex,
-    },
+    page: currentPage,
+    limit: limitPerPage,
+    skip: (currentPage - 1) * limitPerPage,
+    total,
+    totalPages,
+    hasNextPage: currentPage < totalPages,
+    hasPrevPage: currentPage > 1,
   };
+};
+
+/**
+ * Main query builder that combines all features
+ * @param {Model} model
+ * @param {Object} reqQuery
+ */
+export const filterBuilder = async (model, reqQuery) => {
+  try {
+    // Extract query parameters
+    const { select, sort, page, limit, search, ...filters } = reqQuery;
+
+    // Process filters and search
+    let queryFilters = buildOperatorQuery(filters);
+    const searchQuery = buildSearchQuery(search, model);
+    queryFilters = {
+      ...queryFilters,
+      ...(Object.keys(searchQuery).length > 0 && searchQuery),
+    };
+
+    // Build query
+    let query = model.find(queryFilters);
+    query = buildSelectQuery(query, select);
+    query = buildSortQuery(query, sort);
+
+    // Handle pagination
+    const total = await model.countDocuments(queryFilters);
+    const pagination = getPaginationData(total, { page, limit });
+    query = query.skip(pagination.skip).limit(pagination.limit);
+
+    return { query, pagination };
+  } catch (error) {
+    throw new Error(`Query building failed: ${error.message}`);
+  }
 };
