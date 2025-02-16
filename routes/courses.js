@@ -6,10 +6,18 @@ import {
   updateCourse,
   deleteCourse,
 } from "../controllers/courses.js";
+import Course from "../models/Course.js";
+import { baseQuery } from "../middleware/baseQuery.js";
 
 const router = express.Router({ mergeParams: true });
 
-router.route("/").get(getCourses).post(addCourse);
+router
+  .route("/")
+  .get(
+    baseQuery(Course, { path: "bootcamp", select: "name description" }),
+    getCourses
+  )
+  .post(addCourse);
 
 router.route("/:id").get(getCourse).put(updateCourse).delete(deleteCourse);
 

@@ -9,6 +9,9 @@ import {
   uploadBootcampPhoto,
 } from "../controllers/bootcamps.js";
 import courses from "./courses.js";
+import Bootcamp from "../models/Bootcamp.js";
+import { baseQuery } from "../middleware/baseQuery.js";
+
 // Include other resource routers
 const courseRouter = courses;
 const router = express.Router({ mergeParams: true });
@@ -20,7 +23,10 @@ router.use("/:bootcampId/courses", courseRouter);
 
 // router.route("/").get(getBootcamps)
 // router.route("/").post(createBootcamp);
-router.route("/").get(getBootcamps).post(createBootcamp);
+router
+  .route("/")
+  .get(baseQuery(Bootcamp, "courses"), getBootcamps)
+  .post(createBootcamp);
 
 // router.route("/:id").get(getBootcamp)
 // router.route("/:id").put(updateBootcamp)

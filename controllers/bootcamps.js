@@ -2,29 +2,13 @@ import Bootcamp from "../models/Bootcamp.js";
 import ErrorResponse from "../utils/errorResponse.js";
 import asyncHandler from "../middleware/async.js";
 import Geocoder from "../utils/geocoder.js";
-import { filterBuilder } from "../utils/filterBuilder.js";
 import path from "path";
 
 // @desc Get all bootcamps
 // @route GET /api/v1/bootcamps
 // @access Public
 export const getBootcamps = asyncHandler(async (req, res, next) => {
-  // Get query and pagination details
-  const { query, pagination } = await filterBuilder(Bootcamp, req.query);
-
-  // Execute query
-  const bootcamps = await query.populate({
-    path: "courses",
-    select: "title description",
-  });
-
-  res.status(200).json({
-    success: true,
-    totalCount: pagination.total,
-    pagination,
-    message: "Bootcamps fetched successfully",
-    data: bootcamps,
-  });
+  res.status(200).json(res.baseQuery);
 });
 
 // @desc Get single bootcamp
