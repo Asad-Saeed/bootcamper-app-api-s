@@ -6,6 +6,7 @@ import {
   updateBootcamp,
   deleteBootcamp,
   getBootcampsInRadius,
+  uploadBootcampPhoto,
 } from "../controllers/bootcamps.js";
 import courses from "./courses.js";
 // Include other resource routers
@@ -34,6 +35,11 @@ router
 // @route GET /api/v1/bootcamps/radius/:zipcode/:distance
 // @access Private
 router.route("/radius/:zipcode/:distance").get(getBootcampsInRadius);
+
+// @desc Upload photo for bootcamp
+// @route PUT /api/v1/bootcamps/:id/photo
+// @access Private
+router.route("/:id/photo").put(uploadBootcampPhoto);
 
 // Normal API Routes
 
