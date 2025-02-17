@@ -5,6 +5,8 @@ import morgan from "morgan";
 import path from "path";
 import connectDB from "./config/db.js";
 import fileUpload from "express-fileupload";
+import cookieParser from "cookie-parser";
+
 // Middleware
 import logger from "./middleware/logger.js";
 import errorHandler from "./middleware/error.js";
@@ -29,6 +31,9 @@ const app = express();
 
 // Body parser
 app.use(express.json());
+
+// Cookie parser
+app.use(cookieParser());
 
 // File uploading
 app.use(fileUpload());
