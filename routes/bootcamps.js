@@ -11,6 +11,7 @@ import {
 import courses from "./courses.js";
 import Bootcamp from "../models/Bootcamp.js";
 import { baseQuery } from "../middleware/baseQuery.js";
+import { protect } from "../middleware/auth.js";
 
 // Include other resource routers
 const courseRouter = courses;
@@ -26,7 +27,7 @@ router.use("/:bootcampId/courses", courseRouter);
 router
   .route("/")
   .get(baseQuery(Bootcamp, "courses"), getBootcamps)
-  .post(createBootcamp);
+  .post(protect, createBootcamp);
 
 // router.route("/:id").get(getBootcamp)
 // router.route("/:id").put(updateBootcamp)
@@ -34,8 +35,8 @@ router
 router
   .route("/:id")
   .get(getBootcamp)
-  .put(updateBootcamp)
-  .delete(deleteBootcamp);
+  .put(protect, updateBootcamp)
+  .delete(protect, deleteBootcamp);
 
 // @desc Get bootcamps within a radius
 // @route GET /api/v1/bootcamps/radius/:zipcode/:distance
@@ -45,44 +46,6 @@ router.route("/radius/:zipcode/:distance").get(getBootcampsInRadius);
 // @desc Upload photo for bootcamp
 // @route PUT /api/v1/bootcamps/:id/photo
 // @access Private
-router.route("/:id/photo").put(uploadBootcampPhoto);
-
-// Normal API Routes
-
-// router.get("/", (req, res) => {
-//   res.status(200).json({
-//     success: true,
-//     message: "Show all bootcamps",
-//     data: { name: "Asad Saeed" },
-//   });
-// });
-
-// router.get("/:id", (req, res) => {
-//   res.status(200).json({
-//     success: true,
-//     message: `Show bootcamp ${req.params.id}`,
-//   });
-// });
-
-// router.post("/", (req, res) => {
-//   res.status(200).json({
-//     success: true,
-//     message: "Create new bootcamps",
-//   });
-// });
-
-// router.put("/:id", (req, res) => {
-//   res.status(200).json({
-//     success: true,
-//     message: `Update bootcamp ${req.params.id}`,
-//   });
-// });
-
-// router.delete("/:id", (req, res) => {
-//   res.status(200).json({
-//     success: true,
-//     message: `Delete bootcamps ${req.params.id}`,
-//   });
-// });
+router.route("/:id/photo").put(protect, uploadBootcampPhoto);
 
 export default router;

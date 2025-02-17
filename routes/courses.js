@@ -8,7 +8,7 @@ import {
 } from "../controllers/courses.js";
 import Course from "../models/Course.js";
 import { baseQuery } from "../middleware/baseQuery.js";
-
+import { protect } from "../middleware/auth.js";
 const router = express.Router({ mergeParams: true });
 
 router
@@ -17,8 +17,12 @@ router
     baseQuery(Course, { path: "bootcamp", select: "name description" }),
     getCourses
   )
-  .post(addCourse);
+  .post(protect, addCourse);
 
-router.route("/:id").get(getCourse).put(updateCourse).delete(deleteCourse);
+router
+  .route("/:id")
+  .get(getCourse)
+  .put(protect, updateCourse)
+  .delete(protect, deleteCourse);
 
 export default router;
