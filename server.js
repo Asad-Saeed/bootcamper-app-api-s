@@ -11,6 +11,8 @@ import errorHandler from "./middleware/error.js";
 // Route files
 import bootcamps from "./routes/bootcamps.js";
 import courses from "./routes/courses.js";
+import auth from "./routes/auth.js";
+
 import { fileURLToPath } from "url";
 
 // Get current file path and directory
@@ -36,6 +38,7 @@ app.use(express.static(path.join(__dirname, "public")));
 // Mount routers
 app.use("/api/v1/bootcamps", bootcamps);
 app.use("/api/v1/courses", courses);
+app.use("/api/v1/auth", auth);
 
 // Dev logging middleware
 if (process.env.NODE_ENV === "development") {
