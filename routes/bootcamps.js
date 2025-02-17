@@ -11,7 +11,7 @@ import {
 import courses from "./courses.js";
 import Bootcamp from "../models/Bootcamp.js";
 import { baseQuery } from "../middleware/baseQuery.js";
-import { protect } from "../middleware/auth.js";
+import { protect, authorize } from "../middleware/auth.js";
 
 // Include other resource routers
 const courseRouter = courses;
@@ -27,7 +27,7 @@ router.use("/:bootcampId/courses", courseRouter);
 router
   .route("/")
   .get(baseQuery(Bootcamp, "courses"), getBootcamps)
-  .post(protect, createBootcamp);
+  .post(protect, authorize("publisher", "admin"), createBootcamp);
 
 // router.route("/:id").get(getBootcamp)
 // router.route("/:id").put(updateBootcamp)
@@ -35,8 +35,8 @@ router
 router
   .route("/:id")
   .get(getBootcamp)
-  .put(protect, updateBootcamp)
-  .delete(protect, deleteBootcamp);
+  .put(protect, authorize("publisher", "admin"), updateBootcamp)
+  .delete(protect, authorize("publisher", "admin"), deleteBootcamp);
 
 // @desc Get bootcamps within a radius
 // @route GET /api/v1/bootcamps/radius/:zipcode/:distance
@@ -46,6 +46,8 @@ router.route("/radius/:zipcode/:distance").get(getBootcampsInRadius);
 // @desc Upload photo for bootcamp
 // @route PUT /api/v1/bootcamps/:id/photo
 // @access Private
-router.route("/:id/photo").put(protect, uploadBootcampPhoto);
+router
+  .route("/:id/photo")
+  .put(protect, authorize("publisher", "admin"), uploadBootcampPhoto);
 
 export default router;
