@@ -117,6 +117,70 @@ export const resetPassword = asyncHandler(async (req, res, next) => {
   sendTokenResponse(user, 200, "Password reset successful", res);
 });
 
+// @desc Update user details
+// @route PUT /api/v1/auth/updatedetails
+// @access Private
+export const updateDetails = asyncHandler(async (req, res, next) => {
+  const fieldsToUpdate = {
+    name: req.body.name,
+    email: req.body.email,
+  };
+
+  const user = await User.findByIdAndUpdate(req.user.id, fieldsToUpdate, {
+    new: true,
+    runValidators: true,
+  });
+
+  if (!user) {
+    return next(new ErrorResponse("User not found", 404));
+  }
+
+  res.status(200).json({
+    success: true,
+    message: "User updated successfully",
+    data: user,
+  });
+});
+
+// @desc Update password
+// @route PUT /api/v1/auth/updatepassword
+// @access Private
+export const updatePassword = asyncHandler(async (req, res, next) => {
+  // Check if password fields are provided
+  const { currentPassword, password, passwordConfirm } = req.body;
+  if (!currentPassword || !password || !passwordConfirm) {
+    return next(new ErrorResponse("Please provide all password fields", 400));
+  }
+
+  // Check if new password and confirm password match
+  if (password !== passwordConfirm) {
+    return next(
+      new ErrorResponse("New passwords do not match with confirm password", 400)
+    );
+  }
+
+  // Get user with password
+  const user = await User.findById(req.user.id).select("+password");
+  if (!user) {
+    return next(new ErrorResponse("User not found", 404));
+  }
+
+  // Check if current password is correct
+  if (!(await user.matchPassword(currentPassword))) {
+    return next(new ErrorResponse("Invalid current password", 401));
+  }
+
+  // Check if new password is different from current password
+  if (currentPassword === password) {
+    return next(new ErrorResponse("New password must be different", 400));
+  }
+
+  user.password = password;
+  await user.save();
+
+  sendTokenResponse(user, 200, "Password updated successfully", res);
+});
+
 //@desc Get current logged in user
 //@route GET /api/v1/auth/me
 //@access Private
