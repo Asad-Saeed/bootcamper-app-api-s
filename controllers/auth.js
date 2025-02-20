@@ -1,7 +1,7 @@
 import User from "../models/User.js";
 import asyncHandler from "../middleware/async.js";
 import ErrorResponse from "../utils/errorResponse.js";
-import crypto from "crypto";
+import sendEmail from "../utils/sendEmail.js";
 
 //@desc Register user
 //@route POST /api/v1/auth/register
@@ -62,19 +62,32 @@ export const forgotPassword = asyncHandler(async (req, res, next) => {
   // Get reset token
   const resetToken = user.getResetPasswordToken();
 
-  // Set expire time
-  const resetExpire = Date.now() + 10 * 60 * 1000;
-
-  // Create reset password token
-  const resetPasswordToken = crypto.randomBytes(20).toString("hex");
-
   await user.save({ validateBeforeSave: false });
 
-  res.status(200).json({
-    success: true,
-    message: "Password reset token sent to email",
-    data: user,
-  });
+  const resetUrl = `${req.protocol}://${req.get(
+    "host"
+  )}/api/v1/auth/resetpassword/${resetToken}`;
+
+  const message = `You are receiving this email because you (or someone else) has requested the reset of a password. Please make a PUT request to: \n\n ${resetUrl}\n\n If you did not request this, please ignore this email and your password will remain unchanged.`;
+
+  try {
+    await sendEmail({
+      email: user.email,
+      subject: "Password Reset Request",
+      message,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Password reset token sent to email",
+      data: user,
+    });
+  } catch (error) {
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+    await user.save({ validateBeforeSave: false });
+    return next(new ErrorResponse("Email could not be sent", 500));
+  }
 });
 
 //@desc Get current logged in user
