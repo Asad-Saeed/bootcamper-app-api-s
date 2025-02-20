@@ -2,6 +2,7 @@ import User from "../models/User.js";
 import asyncHandler from "../middleware/async.js";
 import ErrorResponse from "../utils/errorResponse.js";
 import sendEmail from "../utils/sendEmail.js";
+import crypto from "crypto";
 
 //@desc Register user
 //@route POST /api/v1/auth/register
@@ -88,6 +89,32 @@ export const forgotPassword = asyncHandler(async (req, res, next) => {
     await user.save({ validateBeforeSave: false });
     return next(new ErrorResponse("Email could not be sent", 500));
   }
+});
+
+// @desc Reset password
+// @route PUT /api/v1/auth/resetpassword/:resettoken
+// @access Public
+export const resetPassword = asyncHandler(async (req, res, next) => {
+  const resetPasswordToken = crypto
+    .createHash("sha256")
+    .update(req.params.resettoken)
+    .digest("hex");
+
+  const user = await User.findOne({
+    resetPasswordToken,
+    resetPasswordExpire: { $gt: Date.now() },
+  });
+
+  if (!user) {
+    return next(new ErrorResponse("Invalid reset token", 400));
+  }
+
+  user.password = req.body.password;
+  user.resetPasswordToken = undefined;
+  user.resetPasswordExpire = undefined;
+  await user.save();
+
+  sendTokenResponse(user, 200, "Password reset successful", res);
 });
 
 //@desc Get current logged in user
