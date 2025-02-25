@@ -24,7 +24,10 @@ export const getReviews = asyncHandler(async (req, res, next) => {
 // @route GET /api/v1/reviews/:id
 // @access Public
 export const getReview = asyncHandler(async (req, res, next) => {
-  const review = await Review.findById(req.params.id);
+  const review = await Review.findById(req.params.id).populate({
+    path: "bootcamp",
+    select: "name description",
+  });
 
   if (!review) {
     return next(
@@ -32,7 +35,13 @@ export const getReview = asyncHandler(async (req, res, next) => {
     );
   }
 
-  res.status(200).json({ success: true, data: review });
+  res
+    .status(200)
+    .json({
+      success: true,
+      message: "Review fetched successfully",
+      data: review,
+    });
 });
 
 // @desc Add review
