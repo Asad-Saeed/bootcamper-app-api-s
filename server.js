@@ -6,6 +6,7 @@ import path from "path";
 import connectDB from "./config/db.js";
 import fileUpload from "express-fileupload";
 import cookieParser from "cookie-parser";
+import review from "./routes/review.js";
 
 // Middleware
 import logger from "./middleware/logger.js";
@@ -46,6 +47,7 @@ app.use("/api/v1/bootcamps", bootcamps);
 app.use("/api/v1/courses", courses);
 app.use("/api/v1/auth", auth);
 app.use("/api/v1/users", users);
+app.use("/api/v1/reviews", review);
 // Dev logging middleware
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));

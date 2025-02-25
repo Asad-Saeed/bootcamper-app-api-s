@@ -12,13 +12,16 @@ import courses from "./courses.js";
 import Bootcamp from "../models/Bootcamp.js";
 import { baseQuery } from "../middleware/baseQuery.js";
 import { protect, authorize } from "../middleware/auth.js";
+import review from "./review.js";
 
 // Include other resource routers
 const courseRouter = courses;
+const reviewRouter = review;
 const router = express.Router({ mergeParams: true });
 
 // Re-route into other resource routers
 router.use("/:bootcampId/courses", courseRouter);
+router.use("/:bootcampId/reviews", reviewRouter);
 
 // Best Practice
 
