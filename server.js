@@ -10,6 +10,9 @@ import review from "./routes/review.js";
 import mongoSanitize from "express-mongo-sanitize";
 import helmet from "helmet";
 import xss from "xss-clean";
+import rateLimit from "express-rate-limit";
+import hpp from "hpp";
+import cors from "cors";
 
 // Middleware
 import logger from "./middleware/logger.js";
@@ -51,6 +54,21 @@ app.use(helmet());
 
 // Prevent cross site scripting attacks
 app.use(xss());
+
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: 10 * 60 * 1000, // 10 minutes
+  limit: 100, // Limit each IP to 100 requests per windowMs
+});
+
+// Prevent rate limiting
+app.use(limiter);
+
+// Prevent http param pollution
+app.use(hpp());
+
+// Prevent cors attacks
+app.use(cors());
 
 // Set static folder
 app.use(express.static(path.join(__dirname, "public")));
