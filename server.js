@@ -8,6 +8,8 @@ import fileUpload from "express-fileupload";
 import cookieParser from "cookie-parser";
 import review from "./routes/review.js";
 import mongoSanitize from "express-mongo-sanitize";
+import helmet from "helmet";
+import xss from "xss-clean";
 
 // Middleware
 import logger from "./middleware/logger.js";
@@ -43,6 +45,12 @@ app.use(fileUpload());
 
 // Sanitize data
 app.use(mongoSanitize());
+
+// Set security headers
+app.use(helmet());
+
+// Prevent cross site scripting attacks
+app.use(xss());
 
 // Set static folder
 app.use(express.static(path.join(__dirname, "public")));
