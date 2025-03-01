@@ -7,6 +7,7 @@ import connectDB from "./config/db.js";
 import fileUpload from "express-fileupload";
 import cookieParser from "cookie-parser";
 import review from "./routes/review.js";
+import mongoSanitize from "express-mongo-sanitize";
 
 // Middleware
 import logger from "./middleware/logger.js";
@@ -39,6 +40,10 @@ app.use(cookieParser());
 
 // File uploading
 app.use(fileUpload());
+
+// Sanitize data
+app.use(mongoSanitize());
+
 // Set static folder
 app.use(express.static(path.join(__dirname, "public")));
 
